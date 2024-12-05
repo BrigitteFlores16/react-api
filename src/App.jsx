@@ -13,13 +13,11 @@ function App() {
   });
   const [articles, setArticles] = useState([]);
 
-  useEffect(() => {
-    if (formData.published) {
-      alert("L'articolo sarà pubblicato!");
-    }
-  }, [formData.published]);
-
-  const handleInputChange = (e) => {
+    fetch('http://localhost:3000/posts')
+       .then(res => res.json())
+       .then(data => setArticles(data));
+  
+    const handleInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'checkbox' && name === 'tags') {
       const newTags = checked
@@ -43,6 +41,16 @@ function App() {
       alert("Inserisci tutti i valori");
       return;
     }
+    fetch('http://localhost:3000/posts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    })
+      .then(res=> res.json())
+      .then(data => {
+
     setArticles([...articles, formData]);
     setFormData({
       title: '',
@@ -53,12 +61,19 @@ function App() {
       published: false,
       tags: []
     });
+  })
   };
-
   const deleteArticle = (articleIndex) => {
-    const newArticles = [...articles];
+    const articleToDelete = articles[articleIndex];
+    fetch(`http://localhost:3000/posts/${articleToDelete.id}`, {
+      method: 'DELETE'
+    })
+      .then(() => {
+
+   const newArticles = [...articles];
     newArticles.splice(articleIndex, 1);
     setArticles(newArticles);
+  })
   };
 
   const editArticle = (articleIndex) => {
@@ -151,11 +166,11 @@ function App() {
           {articles.map((article, articleIndex) => (
             <li key={articleIndex} className="list-group-item d-flex justify-content-between align-items-center">
               <span>
-                {article.title} - {article.author} - {article.category} - {article.published ? 'Pubblicato' : 'Non Pubblicato'}
+                {article.title} - {article.author} 
               </span>
               {article.image && <img src={article.image} alt={article.title} style={{ maxWidth: '100px', maxHeight: '100px' }} />}
               <div className="button-container">
-                <button className="btn btn-warning btn-sm me-2" onClick={() => editArticle(articleIndex)}>Modifica</button>
+                <button className="btn btn-success btn-sm me-2" onClick={() => editArticle(articleIndex)}>Modifica</button>
                 <button className="btn btn-danger btn-sm" onClick={() => deleteArticle(articleIndex)}><span className="material-symbols-outlined">delete</span></button>
               </div>
             </li>
